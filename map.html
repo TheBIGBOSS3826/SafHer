@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Location</title>
+    <title>Live Location Tracker</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWCW2t6gpLY_jci03hElhXAeAGxmx3Bvc"></script>
     <style>
         body, html {
@@ -22,13 +22,12 @@
 <body>
     <div id="map"></div>
     <script>
-        // Initialize map variable
-        let map;
+        let map; // Map variable
+        let marker; // Marker variable to update position dynamically
 
         // Function to initialize the map
         function initMap() {
-            // Default center in case Geolocation fails
-            const defaultLocation = { lat: 0, lng: 0 };
+            const defaultLocation = { lat: 0, lng: 0 }; // Default center if Geolocation fails
 
             // Create a map centered at the default location
             map = new google.maps.Map(document.getElementById("map"), {
@@ -38,27 +37,38 @@
 
             // Check if Geolocation is supported by the browser
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
+                // Watch the user's position and update it as they move
+                navigator.geolocation.watchPosition(
                     (position) => {
-                        // Get user's location
                         const userLocation = {
                             lat: position.coords.latitude,
                             lng: position.coords.longitude,
                         };
 
-                        // Center the map at the user's location
-                        map.setCenter(userLocation);
-                        map.setZoom(15);
+                        // Update map center and marker position
+                        if (!marker) {
+                            // Add marker if it doesn't exist
+                            marker = new google.maps.Marker({
+                                position: userLocation,
+                                map: map,
+                                title: "You are here!", // Tooltip for the marker
+                            });
+                            map.setZoom(15); // Zoom in when location is found
+                        } else {
+                            // Update marker position dynamically
+                            marker.setPosition(userLocation);
+                        }
 
-                        // Add a marker for the user's location
-                        new google.maps.Marker({
-                            position: userLocation,
-                            map: map,
-                            title: "You are here!",
-                        });
+                        // Center the map at the updated location
+                        map.setCenter(userLocation);
                     },
                     (error) => {
                         alert("Failed to get your location. Please allow location access.");
+                    },
+                    {
+                        enableHighAccuracy: true, // Use GPS if available for high accuracy
+                        maximumAge: 0, // Do not use cached positions
+                        timeout: 5000, // Timeout after 5 seconds
                     }
                 );
             } else {
@@ -71,3 +81,4 @@
     </script>
 </body>
 </html>
+
