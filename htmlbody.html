@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafHer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e6e6fa, #afeeee); /* Light purple and turquoise */
+            color: #333;
+            text-align: center;
+        }
+        header {
+            background-color: #9370db; /* Light purple shade */
+            padding: 20px;
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .button-list {
+            margin: 20px 0;
+        }
+        .button-list button {
+            display: block;
+            margin: 10px auto;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background-color: #40e0d0; /* Turquoise */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button-list button:hover {
+            background-color: #20b2aa;
+        }
+        .safe-zones {
+            margin: 30px 0;
+        }
+        iframe {
+            width: 90%;
+            height: 300px;
+            border: 2px solid #9370db;
+            border-radius: 10px;
+        }
+        .send-location {
+            margin-top: 20px;
+        }
+        .send-location button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background-color: #6a5acd; /* Purple */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .send-location button:hover {
+            background-color: #483d8b;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        SafHer
+    </header>
+
+    <div class="button-list">
+        <button onclick="alert('Emergency Services contacted!')">Emergency</button>
+        <button onclick="alert('Campus Police contacted!')">Campus Police</button>
+    </div>
+
+    <div class="safe-zones">
+        <h2>Safe Zones</h2>
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.8354345089166!2d-122.47825528467776!3d37.81992987975159!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDQ5JzExLjciTiAxMjLCsDI4JzUxLjYiVw!5e0!3m2!1sen!2sus!4v1611314906375!5m2!1sen!2sus" 
+            allowfullscreen="" 
+            loading="lazy">
+        </iframe>
+    </div>
+
+    <div class="send-location">
+        <button onclick="alert('Location sent to authorities!')">Send Your Location</button>
+    </div>
+</body>
+</html>
