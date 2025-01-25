@@ -1,1 +1,4 @@
+//Maggie Phifer
+// Will be easier to impliment if you set a key variable as the API Key value.
+
 AIzaSyAWCW2t6gpLY_jci03hElhXAeAGxmx3Bvc
