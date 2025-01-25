@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Location Tracker</title>
+    <title>Fast Live Location Tracker</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWCW2t6gpLY_jci03hElhXAeAGxmx3Bvc"></script>
     <style>
         body, html {
@@ -23,11 +23,11 @@
     <div id="map"></div>
     <script>
         let map; // Map variable
-        let marker; // Marker variable to update position dynamically
+        let marker; // Marker variable for dynamic updates
 
         // Function to initialize the map
         function initMap() {
-            const defaultLocation = { lat: 0, lng: 0 }; // Default center if Geolocation fails
+            const defaultLocation = { lat: 0, lng: 0 }; // Default center in case Geolocation fails
 
             // Create a map centered at the default location
             map = new google.maps.Map(document.getElementById("map"), {
@@ -63,12 +63,13 @@
                         map.setCenter(userLocation);
                     },
                     (error) => {
+                        console.error("Error getting location:", error);
                         alert("Failed to get your location. Please allow location access.");
                     },
                     {
-                        enableHighAccuracy: true, // Use GPS if available for high accuracy
-                        maximumAge: 0, // Do not use cached positions
-                        timeout: 5000, // Timeout after 5 seconds
+                        enableHighAccuracy: true, // Use GPS for the most accurate data
+                        maximumAge: 0,           // Do not use cached positions
+                        timeout: 1000,           // Timeout quickly if no position is available
                     }
                 );
             } else {
