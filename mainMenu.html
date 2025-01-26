@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafHer</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -42,7 +44,7 @@
         .safe-zones {
             margin: 30px 0;
         }
-        #map { /* Style for the dynamic map container */
+        #map {
             width: 90%;
             height: 300px;
             margin: 20px auto;
@@ -98,9 +100,12 @@
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
 <script>
-    let map, userCircle;
+    let map, userCircle, routeControl;
 
     // Initialize map variable
     function initMap() {
@@ -112,6 +117,24 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
+        // Add search control for destinations
+        const geocoder = L.Control.Geocoder.nominatim();
+        const searchControl = L.Control.geocoder({
+            collapsed: false,
+            position: 'topright',
+            geocoder: geocoder
+        }).addTo(map);
+
+        searchControl.on('markgeocode', function(e) {
+            const latlng = e.geocode.center;
+            if (userCircle) {
+                // Set the new route from user's location to the search destination
+                routeControl.setWaypoints([userCircle.getLatLng(), latlng]);
+            } else {
+                alert("Please wait for your location to be detected.");
+            }
+        });
+
         // Check if Geolocation is supported
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -121,6 +144,22 @@
 
                     // Center the map at the user's location
                     map.setView([lat, lon], 15);
+
+                    // Initialize routing control (empty initially)
+                    if (routeControl) {
+                        map.removeControl(routeControl); // Remove the previous control if it exists
+                    }
+
+                    // Create a new route control for the user's location
+                    routeControl = L.Routing.control({
+                        waypoints: [
+                            L.latLng(lat, lon),  // Placeholder for user's location
+                        ],
+                        routeWhileDragging: true
+                    }).addTo(map);
+
+                    // Update route's start point to the user's location
+                    routeControl.spliceWaypoints(0, 1, L.latLng(lat, lon));
 
                     // Create a circle marker for the user's location
                     if (!userCircle) {
