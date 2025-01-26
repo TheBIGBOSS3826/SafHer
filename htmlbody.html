@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafHer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e6e6fa, #afeeee); /* Light purple and turquoise */
+            color: #333;
+            text-align: center;
+        }
+        header {
+            background-color: #9370db; /* Light purple shade */
+            padding: 20px;
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .button-list {
+            margin: 20px 0;
+        }
+        .button-list button {
+            display: block;
+            margin: 10px auto;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background-color: #40e0d0; /* Turquoise */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button-list button:hover {
+            background-color: #20b2aa;
+        }
+        .safe-zones {
+            margin: 30px 0;
+        }
+        #map {
+            width: 90%;
+            height: 300px;
+            margin: 20px auto;
+            border: 2px solid #9370db;
+            border-radius: 10px;
+        }
+        .send-location {
+            margin-top: 20px;
+        }
+        .send-location button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background-color: #6a5acd; /* Purple */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .send-location button:hover {
+            background-color: #483d8b;
+        }
+
+        /* Add the flashing circle animation */
+        @keyframes flashing {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .flashing-circle {
+            animation: flashing 1s infinite;
+        }
+    </style>
+</head>
+<body>
+<header>
+    SafHer
+</header>
+
+<div class="button-list">
+    <button onclick="alert('Emergency Services contacted!')">Emergency</button>
+    <button onclick="alert('Campus Police contacted!')">Campus Police</button>
+</div>
+
+<div class="safe-zones">
+    <h2>Safe Zones</h2>
+    <div id="map"></div>
+</div>
+
+<div class="send-location">
+    <button onclick="sendLocation()">Send Your Location</button>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<script>
+    let map, userCircle, routeControl;
+
+    // Initialize map variable
+    function initMap() {
+        // Initialize map centered at a default location (0,0)
+        map = L.map('map').setView([0, 0], 2);
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add search control for destinations
+        const geocoder = L.Control.Geocoder.nominatim();
+        const searchControl = L.Control.geocoder({
+            collapsed: false,
+            position: 'topright',
+            geocoder: geocoder
+        }).addTo(map);
+
+        searchControl.on('markgeocode', function(e) {
+            const latlng = e.geocode.center;
+            if (userCircle) {
+                // Set the new route from user's location to the search destination
+                routeControl.setWaypoints([userCircle.getLatLng(), latlng]);
+            } else {
+                alert("Please wait for your location to be detected.");
+            }
+        });
+
+        // Check if Geolocation is supported
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    // Center the map at the user's location
+                    map.setView([lat, lon], 15);
+
+                    // Initialize routing control (empty initially)
+                    if (routeControl) {
+                        map.removeControl(routeControl); // Remove the previous control if it exists
+                    }
+
+                    // Create a new route control for the user's location
+                    routeControl = L.Routing.control({
+                        waypoints: [
+                            L.latLng(lat, lon),  // Placeholder for user's location
+                        ],
+                        routeWhileDragging: true
+                    }).addTo(map);
+
+                    // Update route's start point to the user's location
+                    routeControl.spliceWaypoints(0, 1, L.latLng(lat, lon));
+
+                    // Create a circle marker for the user's location
+                    if (!userCircle) {
+                        userCircle = L.circleMarker([lat, lon], {
+                            radius: 15, // Size of the circle
+                            color: 'blue', // Border color
+                            fillColor: 'blue', // Fill color
+                            fillOpacity: 0.5, // Fill opacity
+                        }).addTo(map).bindPopup("You are here!")
+                            .openPopup();
+
+                        // Flashing effect for the circle
+                        userCircle._path.classList.add('flashing-circle');
+                    } else {
+                        userCircle.setLatLng([lat, lon]); // Update circle's position
+                    }
+                },
+                (error) => {
+                    alert("Failed to get your location. Please allow location access.");
+                }
+            );
+        } else {
+            alert("Geolocation is not supported by your browser.");
+        }
+    }
+
+    // Load the map after the page is fully loaded
+    window.onload = initMap;
+
+    // Send location via email (using native email client)
+    function sendLocation() {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                const emailRecipient = prompt("Enter the email address to send your location to:");
+
+                if (!emailRecipient) {
+                    alert("Email address is required!");
+                    return;
+                }
+
+                const subject = "Your Location";
+                const body = `Here is the location you requested:\nLatitude: ${latitude}\nLongitude: ${longitude}`;
+
+                // Create the mailto link
+                const mailtoLink = `mailto:${emailRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+                // Open the email client
+                window.location.href = mailtoLink;
+
+                alert("Location sent via email successfully!");
+            },
+            (error) => {
+                console.error("Geolocation error:", error);
+                alert("Failed to retrieve location. Please enable location services.");
+            }
+        );
+    }
+</script>
+
+</body>
+</html>
