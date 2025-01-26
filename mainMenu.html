@@ -42,7 +42,7 @@
         .safe-zones {
             margin: 30px 0;
         }
-        #map { /* NEW CODE: Style for the dynamic map container */
+        #map { /* Style for the dynamic map container */
             width: 90%;
             height: 300px;
             margin: 20px auto;
@@ -64,6 +64,17 @@
         }
         .send-location button:hover {
             background-color: #483d8b;
+        }
+
+        /* Add the flashing circle animation */
+        @keyframes flashing {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .flashing-circle {
+            animation: flashing 1s infinite;
         }
     </style>
 </head>
@@ -87,6 +98,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
 <script>
     let map, userCircle;
 
@@ -138,28 +150,29 @@
     // Load the map after the page is fully loaded
     window.onload = initMap;
 
-    // Send location to the backend
+    // Send location using EmailJS
     function sendLocation() {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
-                fetch("http://localhost:3000/send-location", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        lat: latitude,
-                        lng: longitude,
-                    }),
-                })
-                    .then((response) => response.text())
-                    .then((data) => {
-                        console.log("Response from server:", data);
-                        alert(data);
-                    })
-                    .catch((error) => {
-                        console.error("Error sending location:", error);
+
+                // Initialize EmailJS (replace with your User ID)
+                emailjs.init("QKL8FTZAUjqTbySmX");
+
+                // Email data
+                const emailData = {
+                    lat: latitude,
+                    lng: longitude,
+                    to_email: "osmarochap@hotmail.com"  // The recipient's email
+                };
+
+                // Send email
+                emailjs.send("service_17br1ol", "template_dtk07ck", emailData)
+                    .then((response) => {
+                        console.log("Email sent successfully:", response);
+                        alert("Location sent via email successfully!");
+                    }, (error) => {
+                        console.error("Error sending email:", error);
                         alert("Failed to send location.");
                     });
             },
